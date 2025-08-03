@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ media_type }} Details - Authentic Screen Talk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div class="media-container">
+        {% if media %}
+            <div class="media-content">
+                {% if media.image_url %}
+                <div class="media-image">
+                    <img src="{{ media.image_url }}" alt="{{ media.title }}">
+                </div>
+                {% endif %}
+                <div class="media-info">
+                    <h1 class="media-title">{{ media.title }}</h1>
+                    <p class="media-description">{{ media.description }}</p>
+                    <div class="media-cast">
+                        <h3>Cast:</h3>
+                        <ul>
+                            {% for actor in media.cast %}
+                            <li>{{ actor }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="error-message">
+                <h2>{{ media_type }} not found</h2>
+                <p>The requested {{ media_type.lower() }} could not be found.</p>
+                <a href="{{ url_for('hello') }}">Back to Home</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html> 
