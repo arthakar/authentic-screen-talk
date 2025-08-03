@@ -1,0 +1,44 @@
+/* Minimal styles at the moment - only background gradient and title */
+
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.result-content {
+    display: flex;
+}
+
+.result-image {
+    width: 120px;
+    min-height: 180px;
+}
+
+.result-image img {
+    width: 120px;
+    height: 180px;
+}
+
+.result-text {
+    margin-left: 20px;
+    flex: 1;
+}
+
+.result-title {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.result-type {
+    margin-bottom: 10px;
+}
+
+.result-description {
+    margin-bottom: 0;
+} 

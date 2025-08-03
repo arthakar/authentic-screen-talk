@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentic Screen Talk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Authenticity Starts Here</h1>
+        <p class="subtitle">Discover authentic conversations about your favorite TV shows and movies</p>
+        
+        <form class="search-form" action="{{ url_for('search') }}" method="GET">
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    name="q" 
+                    class="search-input" 
+                    placeholder="Search for a TV show or movie..."
+                    value="{{ request.args.get('q', '') }}"
+                    autocomplete="off"
+                >
+                <button type="submit" class="search-button">
+                    <span class="search-icon">🔍</span>
+                    Search
+                </button>
+            </div>
+        </form>
+    </div>
+</body>
+</html> 

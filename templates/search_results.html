@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - Authentic Screen Talk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="nav-container">
+            <a href="{{ url_for('hello') }}" class="logo">Authentic Screen Talk</a>
+            <form class="search-container" action="{{ url_for('search') }}" method="GET">
+                <input 
+                    type="text" 
+                    name="q" 
+                    class="search-input" 
+                    placeholder="Search for a TV show or movie..."
+                    value="{{ query }}"
+                >
+                <button type="submit" class="search-button">🔍</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="results-header">
+            <h1 class="search-query">Search Results for: "{{ query }}"</h1>
+            <p class="results-count">{{ results|length }} result(s) found</p>
+        </div>
+
+        {% if results %}
+            <div class="results-grid">
+                {% for result in results %}
+                <div class="result-card">
+                    <div class="result-content">
+                        {% if result.image_url %}
+                        <div class="result-image">
+                            <img src="{{ result.image_url }}" alt="{{ result.title }}" onerror="this.style.display='none'">
+                        </div>
+                        {% endif %}
+                        <div class="result-text">
+                            <h3 class="result-title">{{ result.title }}</h3>
+                            <p class="result-type">{{ result.type }}</p>
+                            <p class="result-description">{{ result.description }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-results">
+                <h2>No results found</h2>
+                <p>We couldn't find any TV shows or movies matching "{{ query }}". Try searching with different keywords.</p>
+                <a href="{{ url_for('hello') }}" class="back-home">Back to Home</a>
+            </div>
+        {% endif %}
+    </main>
+</body>
+</html> 
