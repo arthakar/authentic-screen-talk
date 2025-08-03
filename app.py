@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def hello():
-    return "Hello World"
+    return "Authenticity Starts Here"
     # return render_template('index.html')
 
 @app.route("/about")
@@ -15,8 +15,6 @@ def about():
 @app.route("/search")
 def search():
     query = request.args.get('q', '')
-    # For now, just return a simple message
-    # In a real app, you would search your database here
     if query:
         return f'Search results for: {query}'
     else:
