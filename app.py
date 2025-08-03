@@ -43,6 +43,7 @@ def search():
                 poster_path = item.get('poster_path')
                 image_url = f"https://image.tmdb.org/t/p/w200{poster_path}" if poster_path else None
                 results.append({
+                    'id': item.get('id'),
                     'title': item.get('title') or item.get('name'),
                     'type': 'Movie' if item.get('media_type') == 'movie' else 'TV Show',
                     'description': item.get('overview', 'No description available.'),
@@ -54,6 +55,80 @@ def search():
     except requests.RequestException as e:
         # Return empty results if API call fails
         return render_template('search_results.html', query=query, results=[])
+
+@app.route("/movie/<int:movie_id>")
+def movie_detail(movie_id):
+    # Get movie details from TMDB API
+    movie_url = f"{TMDB_BASE_URL}/movie/{movie_id}"
+    params = {
+        'api_key': TMDB_API_KEY,
+        'language': 'en-US',
+        'append_to_response': 'credits'
+    }
+    
+    try:
+        response = requests.get(movie_url, params=params)
+        response.raise_for_status()
+        movie_data = response.json()
+        
+        # Extract movie information
+        poster_path = movie_data.get('poster_path')
+        image_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
+        
+        # Get cast (first 5 actors)
+        cast = []
+        if movie_data.get('credits', {}).get('cast'):
+            for actor in movie_data['credits']['cast'][:5]:
+                cast.append(actor.get('name', ''))
+        
+        movie_info = {
+            'title': movie_data.get('title'),
+            'description': movie_data.get('overview', 'No description available.'),
+            'image_url': image_url,
+            'cast': cast
+        }
+        
+        return render_template('motionpicture_detail.html', media=movie_info, media_type='Movie')
+        
+    except requests.RequestException as e:
+        return render_template('motionpicture_detail.html', media=None, media_type='Movie')
+
+@app.route("/tv/<int:tv_id>")
+def tv_detail(tv_id):
+    # Get TV show details from TMDB API
+    tv_url = f"{TMDB_BASE_URL}/tv/{tv_id}"
+    params = {
+        'api_key': TMDB_API_KEY,
+        'language': 'en-US',
+        'append_to_response': 'credits'
+    }
+    
+    try:
+        response = requests.get(tv_url, params=params)
+        response.raise_for_status()
+        tv_data = response.json()
+        
+        # Extract TV show information
+        poster_path = tv_data.get('poster_path')
+        image_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
+        
+        # Get cast (first 5 actors)
+        cast = []
+        if tv_data.get('credits', {}).get('cast'):
+            for actor in tv_data['credits']['cast'][:5]:
+                cast.append(actor.get('name', ''))
+        
+        tv_info = {
+            'title': tv_data.get('name'),
+            'description': tv_data.get('overview', 'No description available.'),
+            'image_url': image_url,
+            'cast': cast
+        }
+        
+        return render_template('motionpicture_detail.html', media=tv_info, media_type='TV Show')
+        
+    except requests.RequestException as e:
+        return render_template('motionpicture_detail.html', media=None, media_type='TV Show')
 
 @app.route("/update_server", methods=['POST'])
 def webhook():

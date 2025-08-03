@@ -40,7 +40,13 @@
                         </div>
                         {% endif %}
                         <div class="result-text">
-                            <h3 class="result-title">{{ result.title }}</h3>
+                            <h3 class="result-title">
+                                {% if result.type == 'Movie' %}
+                                    <a href="{{ url_for('movie_detail', movie_id=result.id) }}">{{ result.title }}</a>
+                                {% else %}
+                                    <a href="{{ url_for('tv_detail', tv_id=result.id) }}">{{ result.title }}</a>
+                                {% endif %}
+                            </h3>
                             <p class="result-type">{{ result.type }}</p>
                             <p class="result-description">{{ result.description }}</p>
                         </div>
