@@ -1,12 +1,83 @@
+import os
+from dotenv import load_dotenv
+import google.generativeai as genai
 from flask import Flask, render_template, url_for, flash, redirect, request
 import git
 import requests
+from openai import OpenAI
 
 app = Flask(__name__)
+
+load_dotenv()
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+XAI_API_KEY = os.getenv("XAI_API_KEY")
+
+# Initialize OpenAI client for OpenRouter
+client = OpenAI(
+    base_url="https://api.x.ai/v1",
+    api_key=XAI_API_KEY,
+)
 
 # TMDB API configuration
 TMDB_API_KEY = "e89cfdf8cc89e3352910b8e7b867628d"
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
+
+# LLM API configuration
+LLM_API_URL = "http://localhost:5000/generate_questions" # Example URL for a local LLM service
+
+def generate_questions_with_gemini(media_title, media_description, media_type):
+    """Generate 5 questions using Gemini 2.0 Flash via OpenRouter"""
+    try:
+        prompt = f"""
+        Generate exactly 5 questions about this {media_type} titled \"{media_title}\".
+        Description: {media_description}
+        The questions should be:
+        1. A random fun fill-in-the-blank about the {media_type}
+        2. A funny question regarding the {media_type}
+        3. A deep question about the {media_type}
+        4. A random and silly fill-in-the-blank prompt related to the {media_type}
+        5. A deep question or fill-in-the-blank about the {media_type} in relation to the user
+        Return only the 5 questions as a JSON array of strings, no additional text.
+        Example format: [\"Question 1\", \"Question 2\", \"Question 3\", \"Question 4\", \"Question 5\"]
+        """
+        
+        completion = client.chat.completions.create(
+            extra_headers={},
+            extra_body={},
+            model="grok-3-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        },
+                    ]
+                }
+            ]
+        )
+        
+        response_text = completion.choices[0].message.content.strip()
+        print(completion.choices[0].message.content)
+        print(response_text)
+
+        # Parse JSON response
+        if response_text.startswith('```json'):
+            response_text = response_text.replace('```json', '').replace('```', '').strip()
+        elif response_text.startswith('```'):
+            response_text = response_text.replace('```', '').strip()
+        
+        import json
+        questions = json.loads(response_text)
+        
+        if len(questions) < 5:
+            return ["Error Generating Question"] * 5
+        return questions[:5]
+        
+    except Exception as e:
+        print(f"Error generating questions: {e}")
+        return ["Error Generating Question"] * 5
 
 @app.route("/")
 def hello():
@@ -88,10 +159,21 @@ def movie_detail(movie_id):
             'cast': cast
         }
         
-        return render_template('motionpicture_detail.html', media=movie_info, media_type='Movie')
+        questions = generate_questions_with_gemini(
+            movie_info['title'],
+            movie_info['description'],
+            'movie'
+        )
+
+        return render_template(
+            'motionpicture_detail.html',
+            media=movie_info,
+            media_type='Movie',
+            questions=questions
+        )
         
     except requests.RequestException as e:
-        return render_template('motionpicture_detail.html', media=None, media_type='Movie')
+        return render_template('motionpicture_detail.html', media=None, media_type='Movie', questions=[])
 
 @app.route("/tv/<int:tv_id>")
 def tv_detail(tv_id):
@@ -125,10 +207,41 @@ def tv_detail(tv_id):
             'cast': cast
         }
         
-        return render_template('motionpicture_detail.html', media=tv_info, media_type='TV Show')
+        questions = generate_questions_with_gemini(
+            tv_info['title'],
+            tv_info['description'],
+            'TV show'
+        )
+
+        return render_template(
+            'motionpicture_detail.html',
+            media=tv_info,
+            media_type='TV Show',
+            questions=questions
+        )
         
     except requests.RequestException as e:
-        return render_template('motionpicture_detail.html', media=None, media_type='TV Show')
+        return render_template('motionpicture_detail.html', media=None, media_type='TV Show', questions=[])
+
+@app.route("/submit_thoughts/<media_type>/<int:media_id>", methods=['POST'])
+def submit_thoughts(media_type, media_id):
+    # Get form data
+    question1 = request.form.get('question1', '')
+    question2 = request.form.get('question2', '')
+    question3 = request.form.get('question3', '')
+    question4 = request.form.get('question4', '')
+    question5 = request.form.get('question5', '')
+    
+    # Here you can process the form data as needed
+    # For now, we'll just redirect back to the detail page
+    # You could save to a database, send to an API, etc.
+    
+    # Redirect back to the appropriate detail page
+    
+    if media_type == 'movie':
+        return redirect(url_for('movie_detail', movie_id=media_id))
+    else:
+        return redirect(url_for('tv_detail', tv_id=media_id))
 
 @app.route("/update_server", methods=['POST'])
 def webhook():

@@ -12,3 +12,8 @@ pycodestyle
 pytest
 requests==2.31.0
 Werkzeug==2.3.6
+google-generativeai
+python-dotenv
+openai
+xai_sdk
+
