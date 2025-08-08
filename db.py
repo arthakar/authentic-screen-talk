@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
+from sqlalchemy.pool import NullPool
 
 load_dotenv()
 def db_connect():
@@ -10,8 +11,8 @@ def db_connect():
     PORT = os.getenv("DB_PORT")
     DB_NAME = os.getenv("DB_NAME")
 
-    DB_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}?sslmode=disable"
-    engine = create_engine(DB_URL, echo=True)
+    DB_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}"
+    engine = create_engine(DB_URL, poolclass=NullPool, echo=True)
     conn = None
 
     try:
@@ -23,3 +24,5 @@ def db_connect():
         #print(e)
 
     return engine, conn
+
+db_connect()
