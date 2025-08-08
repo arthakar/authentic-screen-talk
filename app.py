@@ -5,6 +5,7 @@ from flask import Flask, render_template, url_for, flash, redirect, request
 import git
 import requests
 from openai import OpenAI
+from db import db_connect
 
 app = Flask(__name__)
 
@@ -78,6 +79,9 @@ def generate_questions_with_gemini(media_title, media_description, media_type):
     except Exception as e:
         print(f"Error generating questions: {e}")
         return ["Error Generating Question"] * 5
+
+# Connect to Database
+engine, conn = db_connect()
 
 @app.route("/")
 def hello():
