@@ -5,7 +5,7 @@ from flask import Flask, render_template, url_for, flash, redirect, request
 import git
 import requests
 from openai import OpenAI
-from db import db_connect
+from db import submit_responses
 
 app = Flask(__name__)
 
@@ -79,10 +79,10 @@ def generate_questions_with_gemini(media_title, media_description, media_type):
     except Exception as e:
         print(f"Error generating questions: {e}")
         return ["Error Generating Question"] * 5
-
+'''
 # Connect to Database
 engine, conn = db_connect()
-
+'''
 @app.route("/")
 def hello():
     return render_template('index.html')
@@ -230,22 +230,30 @@ def tv_detail(tv_id):
 @app.route("/submit_thoughts/<media_type>/<int:media_id>", methods=['POST'])
 def submit_thoughts(media_type, media_id):
     # Get form data
-    question1 = request.form.get('question1', '')
-    question2 = request.form.get('question2', '')
-    question3 = request.form.get('question3', '')
-    question4 = request.form.get('question4', '')
-    question5 = request.form.get('question5', '')
+    response1 = request.form.get('question1', '')
+    response2 = request.form.get('question2', '')
+    response3 = request.form.get('question3', '')
+    response4 = request.form.get('question4', '')
+    response5 = request.form.get('question5', '')
     
     # Here you can process the form data as needed
     # For now, we'll just redirect back to the detail page
     # You could save to a database, send to an API, etc.
     
-    # Redirect back to the appropriate detail page
+    questionList = request.args.get("questions")
+
+    data = [
+        ['test', response1],
+        ['test', response2],
+        ['tesst', response3],
+        ['test', response4],
+        ['test', response5]]
     
-    if media_type == 'movie':
-        return redirect(url_for('movie_detail', movie_id=media_id))
-    else:
-        return redirect(url_for('tv_detail', tv_id=media_id))
+    show_title = f"{media_type}:{media_id}"
+    submit_responses(show_title, data)
+
+    # Redirect back to the appropriate detail page
+    return render_template("posts.html")
 
 @app.route("/update_server", methods=['POST'])
 def webhook():

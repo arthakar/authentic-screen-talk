@@ -16,4 +16,4 @@ google-generativeai
 python-dotenv
 openai
 xai_sdk
-
+psycopg2
