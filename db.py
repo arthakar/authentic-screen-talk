@@ -47,12 +47,10 @@ def create_show_class(show_title):
 inspector = inspect(engine)
 def submit_responses(show_title, data):
     show = create_show_class(show_title)
-    index = 0
     Base.metadata.create_all(engine)
-    if show_title in inspector.get_table_names():
-        index = session.query(func.max(show.id)).scalar()
+    index = (session.query(func.max(show.id)).scalar() or 0)
     for entry in data:
-        index = index + 1
+        index = (index or 0) + 1
         stmt = show(id=index, question=entry[0], response=entry[1])
         session.add(stmt)
     session.commit()
@@ -60,9 +58,9 @@ def submit_responses(show_title, data):
 def fetch_responses(show_title):
     show = create_show_class(show_title)
     Base.metadata.create_all(engine)
-    if show_title in inspector.get_table_names():
-        index = session.query(func.max(show.id)).scalar()
-    stmt = select(show).limit(9)
-    responses = session.execute(stmt)
-
+    stmt = select(show).limit(10)
+    results = session.execute(stmt).scalars().all()
+    responses = []
+    for row in results:
+        responses.append({'question': row.question, 'response': row.response})
     return responses

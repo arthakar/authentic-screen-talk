@@ -138,6 +138,10 @@ def movie_detail(movie_id):
         'append_to_response': 'credits'
     }
     
+    show_title = f"movie_{movie_id}"
+    thoughts = fetch_responses(show_title)
+    print(thoughts)
+
     try:
         response = requests.get(movie_url, params=params)
         response.raise_for_status()
@@ -161,10 +165,11 @@ def movie_detail(movie_id):
         }
 
         return render_template(
-            'motionpicture_detail.html',
+            'thoughts.html',
             media=movie_info,
             media_type='movie',
-            media_id=movie_id
+            media_id=movie_id,
+            thoughts=thoughts
         )
         
     except requests.RequestException as e:
@@ -179,7 +184,9 @@ def tv_detail(tv_id):
         'language': 'en-US',
         'append_to_response': 'credits'
     }
-    
+    show_title = f"tv_{tv_id}"
+    thoughts = fetch_responses(show_title)
+
     try:
         response = requests.get(tv_url, params=params)
         response.raise_for_status()
@@ -203,10 +210,11 @@ def tv_detail(tv_id):
         }
         
         return render_template(
-            'motionpicture_detail.html',
+            'thoughts.html',
             media=tv_info,
             media_type='tv',
-            media_id=tv_id
+            media_id=tv_id,
+            thoughts=thoughts
         )
         
     except requests.RequestException as e:
@@ -223,6 +231,8 @@ def submit_thoughts(media_type, media_id ):
         'language': 'en-US',
         'append_to_response': 'credits'
     }
+
+    show_title = f"{endpoint}_{media_id}"
 
     if request.method == 'GET':
         try:
@@ -282,7 +292,6 @@ def submit_thoughts(media_type, media_id ):
             ['test', response4],
             ['test', response5]]
         
-        show_title = f"{endpoint}:{media_id}"
         submit_responses(show_title, data)
 
         # Redirect back to the appropriate detail page

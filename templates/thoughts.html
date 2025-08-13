@@ -1,0 +1,25 @@
+{% extends 'motionpicture_detail.html' %} 
+
+
+    {% block thoughts %}
+    <div class="container pb-5">
+        {% if thoughts == [] %}
+            <h1>Be the first to share!</h1>
+        {% else %}
+        <div class="row align-items-center">
+            {% for thought in thoughts %}
+                <div class="col-5 pb-3 align-content-center">
+                    <div class="card">
+                        <h3 class="card-title text-center">{{thought['question']}}</h3>
+                        <div class="card-text text-center">{{thought['response']}}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        </div>
+
+        {% endif %}
+    </div>
+    {% endblock %} 
+
