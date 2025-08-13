@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, inspect, Integer, String, Column, func
+from sqlalchemy import create_engine, inspect, Integer, String, Column, func, select
 from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import declarative_base, sessionmaker
 
@@ -13,7 +13,7 @@ def db_connect():
     DB_NAME = os.getenv("DB_NAME")
 
     DB_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}"
-    engine = create_engine(DB_URL, poolclass=NullPool, echo=True)
+    engine = create_engine(DB_URL, poolclass=NullPool, echo=True, pool_pre_ping=True)
     conn = None
 
     try:
@@ -52,7 +52,17 @@ def submit_responses(show_title, data):
     if show_title in inspector.get_table_names():
         index = session.query(func.max(show.id)).scalar()
     for entry in data:
-        index += 1
+        index = index + 1
         stmt = show(id=index, question=entry[0], response=entry[1])
         session.add(stmt)
     session.commit()
+
+def fetch_responses(show_title):
+    show = create_show_class(show_title)
+    Base.metadata.create_all(engine)
+    if show_title in inspector.get_table_names():
+        index = session.query(func.max(show.id)).scalar()
+    stmt = select(show).limit(9)
+    responses = session.execute(stmt)
+
+    return responses

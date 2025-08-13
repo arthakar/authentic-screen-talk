@@ -5,7 +5,7 @@ from flask import Flask, render_template, url_for, flash, redirect, request
 import git
 import requests
 from openai import OpenAI
-from db import submit_responses
+from db import submit_responses, fetch_responses
 
 app = Flask(__name__)
 
@@ -163,7 +163,7 @@ def movie_detail(movie_id):
         return render_template(
             'motionpicture_detail.html',
             media=movie_info,
-            media_type='Movie',
+            media_type='movie',
             media_id=movie_id
         )
         
@@ -205,7 +205,7 @@ def tv_detail(tv_id):
         return render_template(
             'motionpicture_detail.html',
             media=tv_info,
-            media_type='TV Show',
+            media_type='tv',
             media_id=tv_id
         )
         
@@ -214,8 +214,7 @@ def tv_detail(tv_id):
 
 
 @app.route("/<media_type>/<int:media_id>/submit_thoughts", methods=['POST', 'GET'])
-@app.route("/<media_type>/<int:media_id>/submit_thoughts", methods=['POST','GET'])
-def submit_thoughts(media_id, media_type='tv'):
+def submit_thoughts(media_type, media_id ):
     # Get Media show details from TMDB API
     endpoint = 'tv' if media_type == 'tv' else 'movie'
     media_url = f"{TMDB_BASE_URL}/{endpoint}/{media_id}"
@@ -242,7 +241,7 @@ def submit_thoughts(media_id, media_type='tv'):
                     cast.append(actor.get('name', ''))
             
             media_info = {
-                'title': media_data.get('name'),
+                'title': media_data.get('name') or media_data.get('title'),
                 'description': media_data.get('overview', 'No description available.'),
                 'image_url': image_url,
                 'cast': cast
@@ -250,15 +249,16 @@ def submit_thoughts(media_id, media_type='tv'):
             questions = generate_questions_with_gemini(
                 media_info['title'],
                 media_info['description'],
-                'movie'
+                endpoint
             )
 
             return render_template(
                 'submit_thoughts.html',
                 media=media_info,
-                media_type=media_type,
+                media_type=endpoint,
                 media_id=media_id,
-                questions=questions
+                questions=questions,
+               # responses=fetch_responses(f"{endpoint}:{media_id}")
             )
 
         except requests.RequestException as e:
@@ -282,14 +282,14 @@ def submit_thoughts(media_id, media_type='tv'):
             ['test', response4],
             ['test', response5]]
         
-        show_title = f"tv:{media_id}"
+        show_title = f"{endpoint}:{media_id}"
         submit_responses(show_title, data)
 
         # Redirect back to the appropriate detail page
-        if media_type == "TV Show":
+        if media_type == "tv":
             return redirect(url_for('tv_detail', tv_id=media_id))
         else:
-            return redirect(url_for('tv_detail', tv_id=media_id))
+            return redirect(url_for('movie_detail', movie_id=media_id))
 
 
 
