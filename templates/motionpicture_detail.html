@@ -1,50 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ media_type }} Details - Authentic Screen Talk</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-</head>
-<body>
-    <div class="back">
-        <a href="/search">Home</a>
-    </div>
-    <div class="media-container">
+{% extends "base.html" %}
+
+{% block content %}
+<div class="media-container px-1">
         {% if media %}
-            <div class="media-content">
-                {% if media.image_url %}
-                <div class="media-image">
-                    <img src="{{ media.image_url }}" alt="{{ media.title }}">
-                </div>
-                {% endif %}
-                <div class="media-info">
-                    <h1 class="media-title">{{ media.title }}</h1>
-                    <p class="media-description">{{ media.description }}</p>
-                    <div class="media-cast">
-                        <h3>Cast:</h3>
-                        <ul>
-                            {% for actor in media.cast %}
-                            <li>{{ actor }}</li>
-                            {% endfor %}
-                        </ul>
+            <div class="media-content container">
+                <div class="row align-items-center media py-5">
+                    {% if media.image_url %}
+                    <div class="media-image col-4 media">
+                        <img src="{{ media.image_url }}" alt="{{ media.title }}" class="img-fluid align-self-center mr-3">
+                    </div>
+                    {% endif %}
+                    <div class="media-info col">
+                        <h1 class="media-title">{{ media.title }}</h1>
+                        <p class="media-description">{{ media.description }}</p>
+                        <div class="media-cast">
+                            <h3>Cast:</h3>
+                            <ul>
+                                {% for actor in media.cast %}
+                                <li>{{ actor }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
                     </div>
                 </div>
+                <div class="row mb-5">
+                    <a class="btn btn-primary" href="{{url_for('submit_thoughts', media_type='tv', media_id=media_id)}}">Join in!</a>
+                </div>
             </div>
-            
-            <!-- Form Section -->
-            <div class="form-section">
-                <h2>Share Your Thoughts About {{ media.title }}</h2>
-                <form action="{{ url_for('submit_thoughts', media_type=media_type.lower(), media_id=request.view_args.get('movie_id') or request.view_args.get('tv_id')) }}" method="POST">
-                    {% for question in questions %}
-                    <div class="form-group">
-                        <label for="question{{ loop.index }}">{{ question }}</label>
-                        <input type="text" id="question{{ loop.index }}" name="question{{ loop.index }}" required>
-                    </div>
-                    {% endfor %}
-                    <button type="submit" class="submit-btn">Submit Your Thoughts</button>
-                </form>
-            </div>
+           
+            {% block thoughts %}{% endblock %}
+            {% block submit_thoughts %}{% endblock %}
         {% else %}
             <div class="error-message">
                 <h2>{{ media_type }} not found</h2>
@@ -53,5 +38,4 @@
             </div>
         {% endif %}
     </div>
-</body>
-</html> 
+{% endblock %}

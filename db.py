@@ -48,6 +48,7 @@ inspector = inspect(engine)
 def submit_responses(show_title, data):
     show = create_show_class(show_title)
     index = 0
+    Base.metadata.create_all(engine)
     if show_title in inspector.get_table_names():
         index = session.query(func.max(show.id)).scalar()
     for entry in data:

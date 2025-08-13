@@ -79,10 +79,7 @@ def generate_questions_with_gemini(media_title, media_description, media_type):
     except Exception as e:
         print(f"Error generating questions: {e}")
         return ["Error Generating Question"] * 5
-'''
-# Connect to Database
-engine, conn = db_connect()
-'''
+
 @app.route("/")
 def hello():
     return render_template('index.html')
@@ -162,18 +159,12 @@ def movie_detail(movie_id):
             'image_url': image_url,
             'cast': cast
         }
-        
-        questions = generate_questions_with_gemini(
-            movie_info['title'],
-            movie_info['description'],
-            'movie'
-        )
 
         return render_template(
             'motionpicture_detail.html',
             media=movie_info,
             media_type='Movie',
-            questions=questions
+            media_id=movie_id
         )
         
     except requests.RequestException as e:
@@ -211,49 +202,96 @@ def tv_detail(tv_id):
             'cast': cast
         }
         
-        questions = generate_questions_with_gemini(
-            tv_info['title'],
-            tv_info['description'],
-            'TV show'
-        )
-
         return render_template(
             'motionpicture_detail.html',
             media=tv_info,
             media_type='TV Show',
-            questions=questions
+            media_id=tv_id
         )
         
     except requests.RequestException as e:
         return render_template('motionpicture_detail.html', media=None, media_type='TV Show', questions=[])
 
-@app.route("/submit_thoughts/<media_type>/<int:media_id>", methods=['POST'])
-def submit_thoughts(media_type, media_id):
-    # Get form data
-    response1 = request.form.get('question1', '')
-    response2 = request.form.get('question2', '')
-    response3 = request.form.get('question3', '')
-    response4 = request.form.get('question4', '')
-    response5 = request.form.get('question5', '')
-    
-    # Here you can process the form data as needed
-    # For now, we'll just redirect back to the detail page
-    # You could save to a database, send to an API, etc.
-    
-    questionList = request.args.get("questions")
 
-    data = [
-        ['test', response1],
-        ['test', response2],
-        ['tesst', response3],
-        ['test', response4],
-        ['test', response5]]
-    
-    show_title = f"{media_type}:{media_id}"
-    submit_responses(show_title, data)
+@app.route("/<media_type>/<int:media_id>/submit_thoughts", methods=['POST', 'GET'])
+@app.route("/<media_type>/<int:media_id>/submit_thoughts", methods=['POST','GET'])
+def submit_thoughts(media_id, media_type='tv'):
+    # Get Media show details from TMDB API
+    endpoint = 'tv' if media_type == 'tv' else 'movie'
+    media_url = f"{TMDB_BASE_URL}/{endpoint}/{media_id}"
+    params = {
+        'api_key': TMDB_API_KEY,
+        'language': 'en-US',
+        'append_to_response': 'credits'
+    }
 
-    # Redirect back to the appropriate detail page
-    return render_template("posts.html")
+    if request.method == 'GET':
+        try:
+            response = requests.get(media_url, params=params)
+            response.raise_for_status()
+            media_data = response.json()
+            
+            # Extract TV show information
+            poster_path = media_data.get('poster_path')
+            image_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
+            
+            # Get cast (first 5 actors)
+            cast = []
+            if media_data.get('credits', {}).get('cast'):
+                for actor in media_data['credits']['cast'][:5]:
+                    cast.append(actor.get('name', ''))
+            
+            media_info = {
+                'title': media_data.get('name'),
+                'description': media_data.get('overview', 'No description available.'),
+                'image_url': image_url,
+                'cast': cast
+            }
+            questions = generate_questions_with_gemini(
+                media_info['title'],
+                media_info['description'],
+                'movie'
+            )
+
+            return render_template(
+                'submit_thoughts.html',
+                media=media_info,
+                media_type=media_type,
+                media_id=media_id,
+                questions=questions
+            )
+
+        except requests.RequestException as e:
+            return render_template('motionpicture_detail.html', media=None, media_type='TV Show', questions=[])
+    elif request.method == 'POST':
+        # Get form data
+        response1 = request.form.get('question1', '')
+        response2 = request.form.get('question2', '')
+        response3 = request.form.get('question3', '')
+        response4 = request.form.get('question4', '')
+        response5 = request.form.get('question5', '')
+        
+        # Here you can process the form data as needed
+        # For now, we'll just redirect back to the detail page
+        # You could save to a database, send to an API, etc.
+        
+        data = [
+            ['test', response1],
+            ['test', response2],
+            ['tesst', response3],
+            ['test', response4],
+            ['test', response5]]
+        
+        show_title = f"tv:{media_id}"
+        submit_responses(show_title, data)
+
+        # Redirect back to the appropriate detail page
+        if media_type == "TV Show":
+            return redirect(url_for('tv_detail', tv_id=media_id))
+        else:
+            return redirect(url_for('tv_detail', tv_id=media_id))
+
+
 
 @app.route("/update_server", methods=['POST'])
 def webhook():
