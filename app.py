@@ -23,17 +23,17 @@ client = OpenAI(
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 
 def generate_questions_with_gemini(media_title, media_description, media_type):
-    """Generate 5 questions using Gemini 2.0 Flash via OpenRouter"""
+    """Generate 5 questions using Grok"""
     try:
         prompt = f"""
         Generate exactly 5 questions about this {media_type} titled \"{media_title}\".
         Description: {media_description}
         The questions should be:
-        1. A random fun fill-in-the-blank about the {media_type}
-        2. A funny question regarding the {media_type}
-        3. A deep question about the {media_type}
-        4. A random and silly fill-in-the-blank prompt related to the {media_type}
-        5. A deep question or fill-in-the-blank about the {media_type} in relation to the user
+        1. A random fun fill-in-the-blank about {media_title}
+        2. A funny question regarding {media_title}
+        3. A deep question about {media_title}
+        4. A random and silly fill-in-the-blank prompt related to {media_title}
+        5. A deep question or fill-in-the-blank about {media_title} in relation to the user
         Return only the 5 questions as a JSON array of strings, no additional text.
         Example format: [\"Question 1\", \"Question 2\", \"Question 3\", \"Question 4\", \"Question 5\"]
         """
@@ -122,7 +122,7 @@ def search():
         return render_template('search_results.html', query=query, results=results)
         
     except requests.RequestException as e:
-        # Return empty results if API call fails
+        # Empty results if API call fails
         return render_template('search_results.html', query=query, results=[])
 
 @app.route("/movie/<int:movie_id>")
