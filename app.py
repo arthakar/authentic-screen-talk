@@ -9,8 +9,9 @@ from openai import OpenAI
 app = Flask(__name__)
 
 load_dotenv()
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+# OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
+TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 
 # Initialize OpenAI client for OpenRouter
 client = OpenAI(
@@ -19,11 +20,7 @@ client = OpenAI(
 )
 
 # TMDB API configuration
-TMDB_API_KEY = "e89cfdf8cc89e3352910b8e7b867628d"
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
-
-# LLM API configuration
-LLM_API_URL = "http://localhost:5000/generate_questions" # Example URL for a local LLM service
 
 def generate_questions_with_gemini(media_title, media_description, media_type):
     """Generate 5 questions using Gemini 2.0 Flash via OpenRouter"""
@@ -44,7 +41,7 @@ def generate_questions_with_gemini(media_title, media_description, media_type):
         completion = client.chat.completions.create(
             extra_headers={},
             extra_body={},
-            model="grok-3-mini",
+            model="grok-3",
             messages=[
                 {
                     "role": "user",
@@ -55,7 +52,8 @@ def generate_questions_with_gemini(media_title, media_description, media_type):
                         },
                     ]
                 }
-            ]
+            ], 
+            temperature=0.7
         )
         
         response_text = completion.choices[0].message.content.strip()
@@ -232,11 +230,7 @@ def submit_thoughts(media_type, media_id):
     question4 = request.form.get('question4', '')
     question5 = request.form.get('question5', '')
     
-    # Here you can process the form data as needed
-    # For now, we'll just redirect back to the detail page
-    # You could save to a database, send to an API, etc.
-    
-    # Redirect back to the appropriate detail page
+    # Processes the form data as needed
     
     if media_type == 'movie':
         return redirect(url_for('movie_detail', movie_id=media_id))
